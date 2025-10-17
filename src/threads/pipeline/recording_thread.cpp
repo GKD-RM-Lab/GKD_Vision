@@ -34,7 +34,7 @@ void Pipeline::recording_thread(std::mutex& mutex_in, bool& flag_in, std::shared
         if(frame_count == 0) {
             std::string filedir = (*param)["Camera"]["VideoSaveDir"];
             filedir = filedir +  "/" + getTimeStr() + ".avi";
-            rm::message("Recording to " + filedir, rm::MSG_NOTE);
+            // rm::message("Recording to " + filedir, rm::MSG_NOTE);
             
             writer.open(
                 filedir, cv::VideoWriter::fourcc('M', 'J', 'P', 'G'),

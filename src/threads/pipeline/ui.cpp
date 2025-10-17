@@ -69,12 +69,12 @@ bool Pipeline::monitor(std::shared_ptr<rm::Frame> frame) {
     for (auto yolo_rect : frame->yolo_list) {
         cv::Rect rect = yolo_rect.box;
         std::string info = "ID: " + std::to_string(yolo_rect.class_id);
-        rm::message(info, frame->width, frame->height, rect);
+        // rm::message(info, frame->width, frame->height, rect);
     }
 
     for (auto armor : frame->armor_list) {
         std::string info = "Color: " + std::to_string(armor.color) + " Size: " + std::to_string(armor.size);
-        rm::message(info, frame->width, frame->height, armor.four_points);
+        // rm::message(info, frame->width, frame->height, armor.four_points);
     }
 
     if (Data::target_id == rm::ARMOR_ID_UNKNOWN) {
@@ -107,7 +107,7 @@ bool Pipeline::monitor(std::shared_ptr<rm::Frame> frame) {
         );
         if(!project_out.empty() && Data::image_flag) {
             std::string info = "ID: " + std::to_string(Data::target_id);
-            rm::message(info, frame->width, frame->height, project_out[0]);
+            // rm::message(info, frame->width, frame->height, project_out[0]);
         }
     }
     return true; 

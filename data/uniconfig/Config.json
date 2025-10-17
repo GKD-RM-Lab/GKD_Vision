@@ -48,7 +48,7 @@
     },
 
     "Car" : {
-        "SelfColor" : "BLUE",
+        "SelfColor" : "RED",
         "Gravity" : 9.8,
         
         "ShootSpeed" : 28,

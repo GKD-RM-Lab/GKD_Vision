@@ -61,22 +61,22 @@ static void init_send() {
 }
 
 void Control::message() {
-    rm::message_send();
-    rm::message("system state", Data::state);
-    rm::message("system yaw", get_yaw());
-    rm::message("system pit", get_pitch());
-    rm::message("system rol", get_roll());
-    rm::message("system omg", get_yaw_omega());
-    rm::message("target id", Data::target_id);
-    rm::message("target yaw", target_yaw);
-    rm::message("target pit", target_pitch);
-    rm::message("target -x-", pose(0, 0));
-    rm::message("target -y-", pose(1, 0));
-    rm::message("target -z-", pose(2, 0));
-    rm::message("target -0-", pose(3, 0) * 180 / M_PI);
-    rm::message("target fire", fire);
-    rm::message("enemy color", Data::enemy_color);
-    rm::message("camera id", Data::camera_index);
+    // rm::message_send();
+    // rm::message("system state", Data::state);
+    // rm::message("system yaw", get_yaw());
+    // rm::message("system pit", get_pitch());
+    // rm::message("system rol", get_roll());
+    // rm::message("system omg", get_yaw_omega());
+    // rm::message("target id", Data::target_id);
+    // rm::message("target yaw", target_yaw);
+    // rm::message("target pit", target_pitch);
+    // rm::message("target -x-", pose(0, 0));
+    // rm::message("target -y-", pose(1, 0));
+    // rm::message("target -z-", pose(2, 0));
+    // rm::message("target -0-", pose(3, 0) * 180 / M_PI);
+    // rm::message("target fire", fire);
+    // rm::message("enemy color", Data::enemy_color);
+    // rm::message("camera id", Data::camera_index);
 }
 
 void Control::state() {

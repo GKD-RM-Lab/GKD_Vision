@@ -28,7 +28,7 @@ int main(int argc, char** argv) {
 
     int option;
 
-    para_load("/etc/visionlib/forward_config/config.yaml");
+    para_load("/etc/visionlib/forward_config/infantry/config.yaml");
 
     // if(argc > 1) std::cout << "!!!!!!!!!!" << argv[1] << std::endl;
     while ((option = getopt(argc, argv, "hsv")) != -1) {

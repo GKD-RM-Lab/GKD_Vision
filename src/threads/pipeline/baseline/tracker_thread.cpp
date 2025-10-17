@@ -80,18 +80,17 @@ void Pipeline::tracker_baseline_thread(
         /*debug pnp data*/
         if (frame->target_list.size() > 0 && false)
         {
-            std::cout << "pose" << frame->target_list[0].pose_world << std::endl;
-            std::cout << "armor_yaw_world" << frame->target_list[0].armor_yaw_world << std::endl;
+            // rm::message("pose", frame->target_list[0].pose_world);
+            // rm::message("armor_yaw_world", frame->target_list[0].armor_yaw_world);
         }
 
         if (Data::pipeline_delay_flag)
-            rm::message("tracker time", getDoubleOfS(tp1, tp2) * 1000);
+            // rm::message("tracker time", getDoubleOfS(tp1, tp2) * 1000);
         if (track_flag)
             delay_list.push(getDoubleOfS(tp0, tp2));
 
         tp0 = tp2;
         double fps = 1.0 / delay_list.getAvg();
-        rm::message("fps", fps);
 
         if (Data::image_flag)
         {
@@ -100,6 +99,9 @@ void Pipeline::tracker_baseline_thread(
             imshow(frame);
         }
 
+        // logsys message page
+        rm::message("fps", fps);
+        // rm::message("target[0]", frame->target_list[0].pose_world);
         /*debug*/
         timer.end();
         if (false)
