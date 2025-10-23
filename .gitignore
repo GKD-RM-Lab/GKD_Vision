@@ -1,0 +1,50 @@
+# ===== OS & Editors =====
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+
+# ===== C/C++ & CMake =====
+# build 目录（本地/CLion/多配置）
+build/
+build-*/
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+CTestTestfile.cmake
+Testing/
+install_manifest.txt
+
+# 编译产物
+*.o
+*.obj
+*.lo
+*.la
+*.a
+*.lib
+*.so
+*.so.*
+*.dylib
+*.dll
+*.exe
+*.out
+*.app
+*.pdb
+*.iobj
+*.ipdb
+
+# 生成的汇编/中间文件
+*.s
+*.ii
+
+# ===== Logs & Temp =====
+*.log
+*.tmp
+*.swp
+*.swo

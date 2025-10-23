@@ -2,6 +2,8 @@
 #include "timer/timer.hpp" 
 
 #include "data_manager/parameter_loader.h"
+#include <thread>
+#include <sstream>
 
 float CONF_THRESHOLD = CONF_THRESHOLD_D;
 
@@ -11,6 +13,24 @@ yolo_kpt::yolo_kpt() {
     model = core.read_model(params.model_path_xml, params.model_path_bin);
     std::shared_ptr<ov::Model> model = core.read_model(params.model_path_xml, params.model_path_bin);
     compiled_model = core.compile_model(model, DEVICE);
+
+    unsigned int num_cores = std::thread::hardware_concurrency();
+    
+    // 对于单帧推理，使用延迟优先模式，但允许更多线程并行计算
+    ov::AnyMap cpu_config = {
+        ov::hint::performance_mode(ov::hint::PerformanceMode::LATENCY),      // 延迟优先（单帧推理）
+        ov::inference_num_threads(8),                                       // 使用6个线程并行计算
+    };
+    
+    // Compile with optimized configuration
+    compiled_model = core.compile_model(model, DEVICE, cpu_config);
+    
+    std::cout << "\n=== OpenVINO CPU Optimization ===" << std::endl;
+    std::cout << "CPU cores: " << num_cores << std::endl;
+    std::cout << "Performance mode: LATENCY" << std::endl;
+    std::cout << "Threads: 8" << std::endl;
+    std::cout << "==================================" << std::endl;
+
     // std::map<std::string, std::string> config = {
     //         {InferenceEngine::PluginConfigParams::KEY_PERF_COUNT, InferenceEngine::PluginConfigParams::YES}};
     infer_request = compiled_model.create_infer_request();
@@ -248,16 +268,19 @@ std::vector<yolo_kpt::Object> yolo_kpt::work(cv::Mat src_img) {
     cv::Mat boxed = letter_box(src_img, img_h, img_w, padd);
     cv::cvtColor(boxed, img, cv::COLOR_BGR2RGB);
     auto data1 = input_tensor1.data<float>();
-    for (int h = 0; h < img_h; h++) {
-        for (int w = 0; w < img_w; w++) {
-            for (int c = 0; c < 3; c++) {
-                int out_index = c * img_h * img_w + h * img_w + w;
-                data1[out_index] = float(img.at<cv::Vec3b>(h, w)[c]) / 255.0f;
-            }
+    // 优化的数据拷贝方式 - 使用指针和批量操作
+    int img_size = img_h * img_w;
+    uchar* img_data = img.data;
+    
+    // CHW格式：按通道组织数据
+    for (int c = 0; c < 3; c++) {
+        float* channel_data = data1 + c * img_size;
+        for (int i = 0; i < img_size; i++) {
+            channel_data[i] = float(img_data[i * 3 + c]) / 255.0f;
         }
     }
     timer.end();
-    // std::cout << "preprocess time:" << timer.read() << std::endl;
+    std::cout << "preprocess time:" << timer.read() << " ms" << std::endl;
 
     /*---------------------推理----------------------*/
     timer.begin();
@@ -272,7 +295,7 @@ std::vector<yolo_kpt::Object> yolo_kpt::work(cv::Mat src_img) {
     auto output_tensor_p32 = infer_request.get_output_tensor(2);
     const float *result_p32 = output_tensor_p32.data<const float>();
     timer.end();
-    // std::cout << "inference time:" << timer.read() << std::endl;
+    std::cout << "inference time:" << timer.read() << " ms" << std::endl;
 
     /*------------------------后处理----------------------*/
     timer.begin();
@@ -324,7 +347,7 @@ std::vector<yolo_kpt::Object> yolo_kpt::work(cv::Mat src_img) {
 #endif
     }
     timer.end();
-    // std::cout << "postprocess time:" << timer.read() << std::endl;
+    std::cout << "postprocess time:" << timer.read() << " ms" << std::endl;
 #ifdef VIDEO
     // cv::imshow("Inference frame", src_img);
     // cv::waitKey(1);

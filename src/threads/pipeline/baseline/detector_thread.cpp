@@ -225,13 +225,13 @@ void Pipeline::detector_baseline_thread(
 
         /*计算帧率*/
         timer.end();
-        if(0)
+        if(1)  // 启用延迟测试
         {
             printf("yolo fps = %f\n", 1000.0 / timer.read());
             printf("detector time = %f\n", timer1.read());
             printf("visualize time = %f\n", timer2.read());
             printf("update time = %f\n", timer3.read());
-            printf("------------------------------------------");
+            printf("==========================================\n");
         }
         timer.begin();
 
