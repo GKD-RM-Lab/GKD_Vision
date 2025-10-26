@@ -1,7 +1,5 @@
 #include "video/hikdriver.h"
 
-
-
 cv::Mat HIKimage;
 std::mutex HIKframemtx;
 bool g_camera_thread_running = true;

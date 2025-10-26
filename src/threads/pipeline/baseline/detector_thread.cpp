@@ -40,10 +40,8 @@ void Pipeline::detector_baseline_thread(
     std::mutex mutex;
     TimePoint tp0, tp1, tp2;
     cv::Mat inputImage, label_image;
-    /*推理模型*/
     yolo_kpt model;
     std::vector<yolo_kpt::Object> result;
-    /*帧率统计*/
     Timer timer, timer1, timer2, timer3;
 
     while (true) {
@@ -129,7 +127,6 @@ void Pipeline::detector_baseline_thread(
         HIKframemtx.lock();
         HIKimage.copyTo(inputImage);
         HIKframemtx.unlock();
-        if(inputImage.empty()) continue;
         if(params.is_camreverse){
             cv::flip(inputImage, inputImage, -1);
         }
@@ -137,7 +134,7 @@ void Pipeline::detector_baseline_thread(
         /*------识别------*/
         timer1.begin();
         //推理
-        result = model.work(inputImage);
+        result = model.work();
         std::vector<yolo_kpt::Object> enemy;
         for (auto& obj : result)
         {
