@@ -457,6 +457,54 @@ void image_show(cv::Mat src_img, std::vector<yolo_kpt::Object> result, yolo_kpt&
         cv::imshow("cam", label_image);
     }
 }
+
+void yolo_kpt::send2frame(std::vector<yolo_kpt::Object> &enemy_result, cv::Mat& src_img) {
+    rm::Frame frame;
+    std::vector<rm::YoloRect> yolo_result_list;
+
+    for (auto &result_single : enemy_result) {
+        rm::YoloRect yolo_result_single;
+
+        if (result_single.kpt.size() < 4) {
+            yolo_result_single.four_points = result_single.kpt;
+        } else {
+            yolo_result_single.four_points.push_back(result_single.kpt[2]);
+            yolo_result_single.four_points.push_back(result_single.kpt[1]);
+            yolo_result_single.four_points.push_back(result_single.kpt[3]);
+            yolo_result_single.four_points.push_back(result_single.kpt[0]);
+        }
+
+        yolo_result_single.box = cv::Rect(
+            cvRound(result_single.rect.x),
+            cvRound(result_single.rect.y),
+            cvRound(result_single.rect.width),
+            cvRound(result_single.rect.height)
+        );
+
+        yolo_result_single.confidence = result_single.prob;
+
+        if (result_single.label < 7) {
+            yolo_result_single.color_id = rm::ARMOR_COLOR_BLUE;
+            yolo_result_single.class_id = result_single.label;
+        } else {
+            yolo_result_single.color_id = rm::ARMOR_COLOR_RED;
+            yolo_result_single.class_id = result_single.label - 7;
+        }
+
+        frame.yolo_list.push_back(yolo_result_single);
+    }
+
+    frame.height = src_img.rows;
+    frame.width  = src_img.cols;
+    frame.camera_id = 0;
+
+    if (!frame.image) {
+        frame.image = std::make_shared<cv::Mat>();
+    }
+    src_img.copyTo(*frame.image);
+    frame.time_point = std::chrono::high_resolution_clock::now();
+}
+
 void yolo_kpt::async_infer() {
     int img_h = IMG_SIZE;
     int img_w = IMG_SIZE;
@@ -512,7 +560,6 @@ void yolo_kpt::async_infer() {
         if(cv::waitKey(1)=='q') break;
         // cv::waitKey(1); 这里我不太确定 ？
 
-        
 
         frame_one = next_frame;
         std::swap(padd_one, padd_two);

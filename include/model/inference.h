@@ -23,6 +23,7 @@
 #include <sstream>
 #include "video/hikdriver.h"
 #include "send_control/socket_interface.hpp"
+#include "structure/stamp.hpp"
 
 #define NMS_THRESHOLD   0.10f  // NMS参数（建议调到0.45）
 // #define CONF_THRESHOLD_D 0.35f // 置信度参数， 这个置信度是初始值， 实际的置信度是从config中加载的
@@ -91,7 +92,11 @@ public:
 
     cv::Mat visual_label(cv::Mat inputImage, std::vector<yolo_kpt::Object> result);
     
-    void result_check();
+    std::vector<yolo_kpt::Object> enemy_check(std::vector<yolo_kpt::Object>& object_result);
+    
+    void image_show(cv::Mat src_img, std::vector<yolo_kpt::Object> result, yolo_kpt& model);
+
+    void send2frame(std::vector<yolo_kpt::Object>& enemy_result, cv::Mat& src_img);
 
     void async_infer();
 private:

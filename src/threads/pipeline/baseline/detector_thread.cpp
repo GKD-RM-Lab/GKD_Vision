@@ -170,8 +170,7 @@ void Pipeline::detector_baseline_thread(
         rm::Frame frame;        
         std::vector<YoloRect> yolo_retult;  //从result中提取出的yolo结果
         
-        for(auto&result_single : result)
-        {
+        for(auto&result_single : result) {
             YoloRect yolo_result_single;    //单个装甲板
             //灯条关键点
             if(result_single.kpt.size()<4){
@@ -204,9 +203,7 @@ void Pipeline::detector_baseline_thread(
             }
             
             frame.yolo_list.push_back(yolo_result_single);
-            
         }
-        
         
         /*同步图片信息到frame中*/
         frame.height = inputImage.rows;    //高
