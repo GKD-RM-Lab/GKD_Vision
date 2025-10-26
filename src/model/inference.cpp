@@ -1,7 +1,7 @@
 #include "model/inference.h"
 
-std::mutex result_mtx;
-std::vector<yolo_kpt::Object> object_result;
+float CONF_THRESHOLD;
+unsigned int num_cores;
 
 yolo_kpt::yolo_kpt() {
     CONF_THRESHOLD = params.conf_threshold;
@@ -309,7 +309,7 @@ std::vector<yolo_kpt::Object> yolo_kpt::post_process(const float *result_p8, con
     return object_result;
 }
 
-std::vector<yolo_kpt::Object> enemy_check(std::vector<yolo_kpt::Object>& object_result) {
+std::vector<yolo_kpt::Object> yolo_kpt::enemy_check(std::vector<yolo_kpt::Object>& object_result) {
     std::vector<yolo_kpt::Object> enemy;
 
     for (auto& obj : object_result) {
@@ -449,7 +449,7 @@ int yolo_kpt::pnp_kpt_preprocess(std::vector<yolo_kpt::Object>& result) {
     return 0;
 }
 
-void image_show(cv::Mat src_img, std::vector<yolo_kpt::Object> result, yolo_kpt& model) {
+void yolo_kpt::image_show(cv::Mat src_img, std::vector<yolo_kpt::Object> result, yolo_kpt& model) {
     cv::Mat label_image;
     if(params.is_imshow) {
         src_img.copyTo(label_image);
