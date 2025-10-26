@@ -33,5 +33,4 @@ void Pipeline::detector_baseline_thread(
     Timer timer, timer1, timer2, timer3;
 
     model.async_infer();
-    
 }

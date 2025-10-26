@@ -558,8 +558,8 @@ void yolo_kpt::async_infer() {
         pnp_kpt_preprocess(enemy_result);
         image_show(frame_one, enemy_result, *this);
         if(cv::waitKey(1)=='q') break;
-        // cv::waitKey(1); 这里我不太确定 ？
 
+        send2frame(enemy_result, frame_one);
 
         frame_one = next_frame;
         std::swap(padd_one, padd_two);

@@ -229,10 +229,10 @@ void Pipeline::detector_baseline_thread(
         timer.begin();
 
 
-        std::unique_lock<std::mutex> lock_out(mutex_out);
-        frame_out = std::make_shared<rm::Frame>(frame);
-        flag_out = true;
-        lock_out.unlock();
-        tracker_in_cv_.notify_one();
+        // std::unique_lock<std::mutex> lock_out(mutex_out);
+        // frame_out = std::make_shared<rm::Frame>(frame);
+        // flag_out = true;
+        // lock_out.unlock();
+        // tracker_in_cv_.notify_one();
     }
 }
