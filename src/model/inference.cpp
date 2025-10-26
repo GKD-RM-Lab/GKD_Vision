@@ -233,7 +233,7 @@ void yolo_kpt::generate_proposals(int stride, const float *feat, std::vector<Obj
 }
 
 
-void yolo_kpt::pre_process(cv::Mat& src_img) {
+std::vector<float> yolo_kpt::pre_process(cv::Mat& src_img) {
     int img_h = IMG_SIZE;
     int img_w = IMG_SIZE;
     cv::Mat img;
@@ -251,6 +251,7 @@ void yolo_kpt::pre_process(cv::Mat& src_img) {
             }
         }
     }
+    return padd;
 }
 
 std::vector<yolo_kpt::Object> yolo_kpt::post_process(const float *result_p8, const float *result_p16, const float *result_p32, std::vector<float>& padd, cv::Mat& src_img) {
@@ -308,15 +309,17 @@ std::vector<yolo_kpt::Object> yolo_kpt::post_process(const float *result_p8, con
     return object_result;
 }
 
-bool decide_colour(std::vector<> ) {
-    for (auto& obj : result)
-    {
+std::vector<yolo_kpt::Object> enemy_check(std::vector<yolo_kpt::Object>& object_result) {
+    std::vector<yolo_kpt::Object> enemy;
+
+    for (auto& obj : object_result) {
         bool red = obj.label >= 7;
-        if (red != socket_interface.pkg.red)
-        {
+        if (red != socket_interface.pkg.red) {
             enemy.push_back(obj);
         }
     }
+
+    return enemy;
 }
 
 void yolo_kpt::removePointsOutOfRect(std::vector<cv::Point2f>& kpt, const cv::Rect2f& rect)
@@ -330,7 +333,6 @@ void yolo_kpt::removePointsOutOfRect(std::vector<cv::Point2f>& kpt, const cv::Re
         kpt.end()
     );
 }
-
 
 cv::Mat yolo_kpt::visual_label(cv::Mat inputImage, std::vector<yolo_kpt::Object> result) {
     if(result.size() > 0)
@@ -411,16 +413,13 @@ int yolo_kpt::findMissingCorner(const std::vector<cv::Point2f>& trianglePoints) 
     if (d12 > maxGap) { maxGap = d12; gapIndex = 1; }
     if (d20 > maxGap) { maxGap = d20; gapIndex = 2; }
 
-    if (gapIndex == 0)
-    {
+    if (gapIndex == 0) {
         return 1;
     }
-    else if (gapIndex == 1)
-    {
+    else if (gapIndex == 1) {
         return 2;
     }
-    else  
-    {
+    else {
         if (d01 < d12)
             return 3;
         else
@@ -447,10 +446,17 @@ int yolo_kpt::pnp_kpt_preprocess(std::vector<yolo_kpt::Object>& result) {
         }
 
     }
-    object_result = result;
     return 0;
 }
 
+void image_show(cv::Mat src_img, std::vector<yolo_kpt::Object> result, yolo_kpt& model) {
+    cv::Mat label_image;
+    if(params.is_imshow) {
+        src_img.copyTo(label_image);
+        label_image = model.visual_label(label_image, result);
+        cv::imshow("cam", label_image);
+    }
+}
 void yolo_kpt::async_infer() {
     int img_h = IMG_SIZE;
     int img_w = IMG_SIZE;
@@ -464,12 +470,14 @@ void yolo_kpt::async_infer() {
         cv::flip(frame_one, frame_one, -1);
     }
 
-    std::vector<float> padd;
+    std::vector<float> padd_one;
+    std::vector<float> padd_two;
     int total_time = 0;
 
-    pre_process(frame_one);
+    padd_one = pre_process(frame_one);
     infer_request[0].set_input_tensor(input_tensor);
     infer_request[0].start_async();
+
     while (true) {
         cv::Mat next_frame;
 
@@ -483,7 +491,8 @@ void yolo_kpt::async_infer() {
 
         if(next_frame.empty()) continue;
 
-        pre_process(next_frame);
+        padd_two = pre_process(next_frame);
+
         infer_request[1].set_input_tensor(input_tensor);
         infer_request[1].start_async();
 
@@ -494,12 +503,19 @@ void yolo_kpt::async_infer() {
         const float *result_p16 = output_tensor_p16.data<const float>();
         auto output_tensor_p32 = infer_request[0].get_output_tensor(2);
         const float *result_p32 = output_tensor_p32.data<const float>();
-        post_process(result_p8, result_p16, result_p32, padd, frame_one);
-        object_result = post_process(result_p8, result_p16, result_p32, padd, frame_one);
 
+        std::vector<Object> object_result = post_process(result_p8, result_p16, result_p32, padd_one, frame_one);
+        std::vector<Object> enemy_result = enemy_check(object_result);
+
+        pnp_kpt_preprocess(enemy_result);
+        image_show(frame_one, enemy_result, *this);
+        if(cv::waitKey(1)=='q') break;
         // cv::waitKey(1); 这里我不太确定 ？
+
+        
+
         frame_one = next_frame;
+        std::swap(padd_one, padd_two);
         std::swap(infer_request[0], infer_request[1]);
     }
 }
-

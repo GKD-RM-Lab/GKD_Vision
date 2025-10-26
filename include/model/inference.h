@@ -22,6 +22,7 @@
 #include <thread>
 #include <sstream>
 #include "video/hikdriver.h"
+#include "send_control/socket_interface.hpp"
 
 #define NMS_THRESHOLD   0.10f  // NMS参数（建议调到0.45）
 // #define CONF_THRESHOLD_D 0.35f // 置信度参数， 这个置信度是初始值， 实际的置信度是从config中加载的
@@ -76,7 +77,7 @@ public:
     static void generate_proposals(int stride, const float *feat,
                                    std::vector<Object> &objects);
     
-    void pre_process(cv::Mat& src_img);
+    std::vector<float> pre_process(cv::Mat& src_img);
     
     std::vector<yolo_kpt::Object> post_process(const float *result_p8, const float *result_p16, const float *result_p32z, std::vector<float>& padd, cv::Mat& src_img);
 

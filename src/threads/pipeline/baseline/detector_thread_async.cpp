@@ -5,7 +5,6 @@
 #include "model/inference.h"
 
 #include "timer/timer.hpp"
-#include "send_control/socket_interface.hpp"
 
 #include "data_manager/parameter_loader.h"
 

@@ -77,7 +77,13 @@ using namespace rm;
 //         resize(
 //             camera->rgb_device_buffer,
 //             frame->width,
-//             frame->height,
+//             frame->height,        
+        // if (frame->yolo_list.empty()) {
+        //     if (Data::image_flag) imshow(frame);
+        //     continue;
+        // } 
+
+        // tp2 = getTime();
 //             armor_input_device_buffer_,
 //             infer_width,
 //             infer_height,
