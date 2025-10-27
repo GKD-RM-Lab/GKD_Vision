@@ -52,7 +52,7 @@ cd ..
 # 3. 模型文件安装
 # ==============================================================
 echo -e "${yellow}<--- 安装模型文件 --->${reset}"
-sudo cp -f include/model/yolov7_quantized/rmyolov7-latest-int8.* "$SYS_DIR/models/" 2>/dev/null || true
+sudo cp -f include/model/yolov7/rmyolov7-latest.* "$SYS_DIR/models/" 2>/dev/null || true
 
 # ==============================================================
 # 4. 兵种配置安装

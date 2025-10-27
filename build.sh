@@ -17,15 +17,6 @@ if [ -z "$TARGET" ]; then
     exit 1
 fi
 
-imshow=0
-verbose=1
-shift
-if [ "$1" = "-v" ]; then
-    verbose=1
-elif [ "$1" = "-s" ]; then
-    imshow=1
-fi
-
 # ==============================================================
 # 1. 环境准备
 # ==============================================================
@@ -51,7 +42,7 @@ cd ..
 # 3. 模型文件安装
 # ==============================================================
 echo -e "${yellow}<--- 安装模型文件 --->${reset}"
-sudo cp -f include/model/yolov7_quantized/rmyolov7-latest-int8.* "$SYS_DIR/models/" 2>/dev/null || true
+sudo cp -f include/model/yolov7/rmyolov7-latest.* "$SYS_DIR/models/" 2>/dev/null || true
 
 # ==============================================================
 # 4. 兵种配置安装

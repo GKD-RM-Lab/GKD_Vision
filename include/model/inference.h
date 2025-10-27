@@ -24,6 +24,7 @@
 #include "video/hikdriver.h"
 #include "send_control/socket_interface.hpp"
 #include "structure/stamp.hpp"
+#include "timer/timer.hpp"
 
 #define NMS_THRESHOLD   0.10f  // NMS参数（建议调到0.45）
 // #define CONF_THRESHOLD_D 0.35f // 置信度参数， 这个置信度是初始值， 实际的置信度是从config中加载的
@@ -31,7 +32,7 @@
 #define IMG_SIZE        640    // 推理图像大小
 #define ANCHOR          3      // anchor 数量
 #define DETECT_MODE     0      // ARMOR 0, WIN 1, BOARD 2
-#define DEVICE          "GPU"  // 设备选择
+#define DEVICE          "CPU"  // 设备选择
 #define VIDEO           0// 是否展示推理视频
 
 #if DETECT_MODE == 0
@@ -64,6 +65,8 @@ public:
         cv::Mat pnp_tvec;
         cv::Mat pnp_rvec;
     };
+    
+
     cv::Mat letter_box(cv::Mat &src, int h, int w, std::vector<float> &padd);
     std::vector<cv::Point2f> scale_box_kpt(std::vector<cv::Point2f> points,
                                            std::vector<float> &padd,
@@ -123,9 +126,8 @@ private:
     static float sigmoid(float x) {
         return 1.0f / (1.0f + expf(-x));
     }
+    Timer timer1, timer2, timer3, timer4;
 };
 
-extern float CONF_THRESHOLD;
-extern unsigned int num_cores;
 
 #endif
