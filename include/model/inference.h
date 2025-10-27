@@ -10,6 +10,7 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <array>
 #include <sstream>
 #include <sys/types.h>
 #include <opencv2/opencv.hpp>

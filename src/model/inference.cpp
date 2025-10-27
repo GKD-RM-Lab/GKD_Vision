@@ -308,8 +308,7 @@ std::vector<yolo_kpt::Object> yolo_kpt::post_process(const float *result_p8, con
     }
     #if VIDEO == 1
         // cv::imshow("Inference frame", src_img);
-        // cv::waitKey(1);dst_tensor
-dst_tensor
+        // cv::waitKey(1);
     #endif
     return object_result;
 }
@@ -513,80 +512,67 @@ void yolo_kpt::send2frame(std::vector<yolo_kpt::Object> &enemy_result, cv::Mat& 
 }
 
 void yolo_kpt::async_infer() {
-    int img_h = IMG_SIZE;
-    int img_w = IMG_SIZE;
+    std::array<cv::Mat, 2> frames;
+    std::array<std::vector<float>, 2> paddings;
 
-    cv::Mat frame_one;
-    HIKframemtx.lock();
-    HIKimage.copyTo(frame_one);
-    HIKframemtx.unlock();
-
-    while (frame_one.empty()) {
+    cv::Mat first_frame;
+    do {
         HIKframemtx.lock();
-        HIKimage.copyTo(frame_one);
+        HIKimage.copyTo(first_frame);
         HIKframemtx.unlock();
+    } while (first_frame.empty());
+
+    if (params.is_camreverse) {
+        cv::flip(first_frame, first_frame, -1);
     }
 
-    if(params.is_camreverse){
-        cv::flip(frame_one, frame_one, -1);
-    }
-
-    std::vector<float> padd_one, padd_two;
-
-    padd_one = pre_process(frame_one, input_tensors[0]);
+    frames[0] = first_frame;
+    paddings[0] = pre_process(frames[0], input_tensors[0]);
     infer_request[0].start_async();
 
     int current_idx = 0;
     int next_idx = 1;
 
     while (true) {
-        cv::Mat next_frame;
-
+        cv::Mat captured_frame;
         HIKframemtx.lock();
-        HIKimage.copyTo(next_frame);
+        HIKimage.copyTo(captured_frame);
         HIKframemtx.unlock();
 
-        if(next_frame.empty()) continue;
-
-        if(params.is_camreverse){
-            cv::flip(next_frame, next_frame, -1);
+        if (captured_frame.empty()) {
+            continue;
         }
 
-        padd_two = pre_process(next_frame, input_tensors[next_idx]);
+        if (params.is_camreverse) {
+            cv::flip(captured_frame, captured_frame, -1);
+        }
+
+        frames[next_idx] = captured_frame;
+        paddings[next_idx] = pre_process(frames[next_idx], input_tensors[next_idx]);
         infer_request[next_idx].start_async();
 
         infer_request[current_idx].wait();
+
         auto output_tensor_p8 = infer_request[current_idx].get_output_tensor(0);
-        const float *result_p8 = output_tensor_p8.data<const float>();
+        const float* result_p8 = output_tensor_p8.data<const float>();
         auto output_tensor_p16 = infer_request[current_idx].get_output_tensor(1);
-        const float *result_p16 = output_tensor_p16.data<const float>();
+        const float* result_p16 = output_tensor_p16.data<const float>();
         auto output_tensor_p32 = infer_request[current_idx].get_output_tensor(2);
-        const float *result_p32 = output_tensor_p32.data<const float>();
+        const float* result_p32 = output_tensor_p32.data<const float>();
 
-        std::vector<Object> object_result = post_process(result_p8, result_p16, result_p32, (current_idx == 0 ? padd_one : padd_two), 
-      (current_idx == 0 ? frame_one : next_frame));
+        std::vector<Object> object_result = post_process(result_p8, result_p16, result_p32,
+                                                         paddings[current_idx], frames[current_idx]);
         std::vector<Object> enemy_result = enemy_check(object_result);
-
         pnp_kpt_preprocess(enemy_result);
 
-        image_show(frame_one, enemy_result, *this);
-        if(cv::waitKey(1)=='q') break;
-
-        send2frame(enemy_result, frame_one);
-
-        std::swap(current_idx, next_idx);
-
-        if (current_idx == 0) {
-            frame_one = next_frame;
-            padd_one = padd_two; 
+        image_show(frames[current_idx], enemy_result, *this);
+        if (cv::waitKey(1) == 'q') {
+            break;
         }
-        else {
-            next_frame = frame_one;
-            padd_two = padd_one;
-        }
-        // std::swap(frame_one, next_frame);
-        // std::swap(padd_one, padd_two);
-        // std::swap(infer_request[0], infer_request[1]);
-        // std::swap(input_tensors[0], input_tensors[1]);
+
+        send2frame(enemy_result, frames[current_idx]);
+
+        current_idx = next_idx;
+        next_idx = 1 - current_idx;
     }
 }
