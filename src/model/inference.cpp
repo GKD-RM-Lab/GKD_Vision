@@ -32,9 +32,14 @@ yolo_kpt::yolo_kpt() {
     infer_request = {compiled_model.create_infer_request(),
                      compiled_model.create_infer_request() };
 
-    for (int i=0; i<2; ++i) {
-        input_tensors[i] = infer_request[i].get_input_tensor(0);
-    }
+    for (int i = 0; i < 2; ++i) {
+        input_tensors[i] = ov::Tensor(
+             compiled_model.input().get_element_type(),
+            compiled_model.input().get_shape()
+        );
+    infer_request[i].set_input_tensor(input_tensors[i]);
+}
+
 }
 
 cv::Mat yolo_kpt::letter_box(cv::Mat &src, int h, int w, std::vector<float> &padd) {
@@ -526,12 +531,9 @@ void yolo_kpt::async_infer() {
         cv::flip(frame_one, frame_one, -1);
     }
 
-    std::vector<float> padd_one;
-    std::vector<float> padd_two;
-    int total_time = 0;
-
+    std::vector<float> padd_one, padd_two;
+    
     padd_one = pre_process(frame_one, input_tensors[0]);
-    infer_request[0].set_input_tensor(input_tensors[0]);
     infer_request[0].start_async();
 
     while (true) {
@@ -541,15 +543,13 @@ void yolo_kpt::async_infer() {
         HIKimage.copyTo(next_frame);
         HIKframemtx.unlock();
 
+        if(next_frame.empty()) continue;
+
         if(params.is_camreverse){
             cv::flip(next_frame, next_frame, -1);
         }
 
-        if(next_frame.empty()) continue;
-
         padd_two = pre_process(next_frame, input_tensors[1]);
-
-        infer_request[1].set_input_tensor(input_tensors[1]);
         infer_request[1].start_async();
 
         infer_request[0].wait();
@@ -564,7 +564,6 @@ void yolo_kpt::async_infer() {
         std::vector<Object> enemy_result = enemy_check(object_result);
 
         pnp_kpt_preprocess(enemy_result);
-
         image_show(frame_one, enemy_result, *this);
         if(cv::waitKey(1)=='q') break;
         send2frame(enemy_result, frame_one);
