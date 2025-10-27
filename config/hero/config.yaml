@@ -17,9 +17,9 @@ boardSize_w: 9
 squareSize: 15
 img_count: 60
 sample_period: 20
-calib_yaml_path: "/etc/visionlib/forward_config/camera_intrinsics.yaml"
+calib_yaml_path: "/etc/visionlib/forward_config/hero/camera_intrinsics.yaml"
 # calib_yaml_path: "/home/gkd/Opencl_vision/TJURM-2024-gkd/config/forward_config/calib"
-camera_extrinsics_path: "/etc/visionlib/forward_config/camera_extrinsics.yaml"
+camera_extrinsics_path: "/etc/visionlib/forward_config/hero/camera_extrinsics.yaml"
 cam_gain: 16.0
 cam_exptime: 4000
 framerate: 120

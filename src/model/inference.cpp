@@ -9,16 +9,18 @@ yolo_kpt::yolo_kpt() {
     model = core.read_model(params.model_path_xml, params.model_path_bin);
     num_cores = std::thread::hardware_concurrency();
 
+    std::string Device = DEVICE;
+
     ov::AnyMap config;
-    if (+DEVICE == +"CPU") {
+    if (Device == "CPU") {
         config = {
             ov::hint::performance_mode(ov::hint::PerformanceMode::LATENCY),
-            ov::hint::scheduling_core_type(ov::hint::SchedulingCoreType::PCORE_ONLY),
-            ov::inference_num_threads(num_cores)
+            ov::inference_num_threads((int)num_cores),
+            ov::hint::num_requests(2)
         };
         std::cout << "CPU : NUM_THREADS =" << num_cores << std::endl;
     }
-    else if (+DEVICE == +"GPU") {
+    else if (Device == "GPU") {
         config = {
             ov::hint::performance_mode(ov::hint::PerformanceMode::THROUGHPUT),
             ov::streams::num(2)
@@ -27,12 +29,11 @@ yolo_kpt::yolo_kpt() {
     }
     compiled_model = core.compile_model(model, DEVICE, config);
 
-    infer_request = {compiled_model.create_infer_request(), 
-                                                   compiled_model.create_infer_request()};
-                                                   
+    infer_request = {compiled_model.create_infer_request(),
+                     compiled_model.create_infer_request() };
 
-    for(int i = 0; i < 2; i++) {
-        input_tensor = infer_request[i].get_input_tensor(0);
+    for (int i=0; i<2; ++i) {
+        input_tensors[i] = infer_request[i].get_input_tensor(0);
     }
 }
 
@@ -233,22 +234,20 @@ void yolo_kpt::generate_proposals(int stride, const float *feat, std::vector<Obj
 }
 
 
-std::vector<float> yolo_kpt::pre_process(cv::Mat& src_img) {
-    int img_h = IMG_SIZE;
-    int img_w = IMG_SIZE;
-    cv::Mat img;
-    std::vector<float> padd;
-
+std::vector<float> yolo_kpt::pre_process(cv::Mat& src_img, ov::Tensor& dst_tensor) {
+    const int img_h = IMG_SIZE, img_w = IMG_SIZE;
+    cv::Mat img; std::vector<float> padd;
     cv::Mat boxed = letter_box(src_img, img_h, img_w, padd);
     cv::cvtColor(boxed, img, cv::COLOR_BGR2RGB);
-    auto datal = input_tensor.data<float>();
-    
-    for (int h = 0; h < img_h; h++) {
-        for (int w = 0; w < img_w; w++) {
-            for (int c = 0; c < 3; c++) {
-                int out_index = c * img_h * img_w + h * img_w + w;
-                datal[out_index] = float(img.at<cv::Vec3b>(h, w)[c]) / 255.0f;
-            }
+
+    auto* data = dst_tensor.data<float>();
+
+    for (int h=0; h<img_h; ++h) {
+        for (int w=0; w<img_w; ++w) {
+            const cv::Vec3b pix = img.at<cv::Vec3b>(h, w);
+            data[0*img_h*img_w + h*img_w + w] = pix[0] / 255.f;
+            data[1*img_h*img_w + h*img_w + w] = pix[1] / 255.f;
+            data[2*img_h*img_w + h*img_w + w] = pix[2] / 255.f;
         }
     }
     return padd;
@@ -304,7 +303,8 @@ std::vector<yolo_kpt::Object> yolo_kpt::post_process(const float *result_p8, con
     }
     #if VIDEO == 1
         // cv::imshow("Inference frame", src_img);
-        // cv::waitKey(1);
+        // cv::waitKey(1);dst_tensor
+dst_tensor
     #endif
     return object_result;
 }
@@ -467,7 +467,8 @@ void yolo_kpt::send2frame(std::vector<yolo_kpt::Object> &enemy_result, cv::Mat& 
 
         if (result_single.kpt.size() < 4) {
             yolo_result_single.four_points = result_single.kpt;
-        } else {
+        } 
+        else {
             yolo_result_single.four_points.push_back(result_single.kpt[2]);
             yolo_result_single.four_points.push_back(result_single.kpt[1]);
             yolo_result_single.four_points.push_back(result_single.kpt[3]);
@@ -486,7 +487,8 @@ void yolo_kpt::send2frame(std::vector<yolo_kpt::Object> &enemy_result, cv::Mat& 
         if (result_single.label < 7) {
             yolo_result_single.color_id = rm::ARMOR_COLOR_BLUE;
             yolo_result_single.class_id = result_single.label;
-        } else {
+        } 
+        else {
             yolo_result_single.color_id = rm::ARMOR_COLOR_RED;
             yolo_result_single.class_id = result_single.label - 7;
         }
@@ -513,7 +515,13 @@ void yolo_kpt::async_infer() {
     HIKframemtx.lock();
     HIKimage.copyTo(frame_one);
     HIKframemtx.unlock();
-       
+
+    while (frame_one.empty()) {
+        HIKframemtx.lock();
+        HIKimage.copyTo(frame_one);
+        HIKframemtx.unlock();
+    }
+
     if(params.is_camreverse){
         cv::flip(frame_one, frame_one, -1);
     }
@@ -522,8 +530,8 @@ void yolo_kpt::async_infer() {
     std::vector<float> padd_two;
     int total_time = 0;
 
-    padd_one = pre_process(frame_one);
-    infer_request[0].set_input_tensor(input_tensor);
+    padd_one = pre_process(frame_one, input_tensors[0]);
+    infer_request[0].set_input_tensor(input_tensors[0]);
     infer_request[0].start_async();
 
     while (true) {
@@ -539,9 +547,9 @@ void yolo_kpt::async_infer() {
 
         if(next_frame.empty()) continue;
 
-        padd_two = pre_process(next_frame);
+        padd_two = pre_process(next_frame, input_tensors[1]);
 
-        infer_request[1].set_input_tensor(input_tensor);
+        infer_request[1].set_input_tensor(input_tensors[1]);
         infer_request[1].start_async();
 
         infer_request[0].wait();
@@ -556,13 +564,14 @@ void yolo_kpt::async_infer() {
         std::vector<Object> enemy_result = enemy_check(object_result);
 
         pnp_kpt_preprocess(enemy_result);
+
         image_show(frame_one, enemy_result, *this);
         if(cv::waitKey(1)=='q') break;
-
         send2frame(enemy_result, frame_one);
 
-        frame_one = next_frame;
+        std::swap(frame_one, next_frame);
         std::swap(padd_one, padd_two);
         std::swap(infer_request[0], infer_request[1]);
+        std::swap(input_tensors[0], input_tensors[1]);
     }
 }

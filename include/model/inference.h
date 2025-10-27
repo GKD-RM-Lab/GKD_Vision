@@ -81,7 +81,7 @@ public:
     static void generate_proposals(int stride, const float *feat,
                                    std::vector<Object> &objects);
     
-    std::vector<float> pre_process(cv::Mat& src_img);
+    std::vector<float> pre_process(cv::Mat& src_img, ov::Tensor& dst_tensor);
     
     std::vector<yolo_kpt::Object> post_process(const float *result_p8, const float *result_p16, const float *result_p32z, std::vector<float>& padd, cv::Mat& src_img);
 
@@ -107,7 +107,7 @@ private:
     std::shared_ptr<ov::Model> model;
     ov::CompiledModel compiled_model;
     std::vector<ov::InferRequest> infer_request;
-    ov::Tensor input_tensor;
+    std::array<ov::Tensor, 2> input_tensors;
 
 #if DETECT_MODE == 0
     const std::vector<std::string> class_names = {
