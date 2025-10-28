@@ -26,6 +26,7 @@
 #include "structure/stamp.hpp"
 #include "timer/timer.hpp"
 
+
 #define NMS_THRESHOLD   0.10f  // NMS参数（建议调到0.45）
 // #define CONF_THRESHOLD_D 0.35f // 置信度参数， 这个置信度是初始值， 实际的置信度是从config中加载的
 #define CONF_REMAIN     0.0f   // 保留帧权重比例

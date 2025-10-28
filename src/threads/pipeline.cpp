@@ -39,6 +39,10 @@ void Pipeline::autoaim_fourpoints() {
     }
 }
 
+void Pipeline::notify_tracker_in() {
+    tracker_in_cv_.notify_one();
+}
+
 void Pipeline::autoaim_baseline() {
     // bool cuda_status = rm::initCudaStream(&this->detect_stream_);
     // cuda_status = rm::initCudaStream(&this->resize_stream_);
@@ -63,7 +67,7 @@ void Pipeline::autoaim_baseline() {
         &Pipeline::detector_baseline_thread, this,
         std::ref(preprocessor_mutex_), std::ref(preprocessor_over_), std::ref(preprocessor_register_),
         std::ref(detector_mutex_), std::ref(detector_over_), std::ref(detector_register_));
-
+    
     std::thread tracker_baseline_thread(
         &Pipeline::tracker_baseline_thread, this,
         std::ref(detector_mutex_), std::ref(detector_over_), std::ref(detector_register_));

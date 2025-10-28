@@ -43,7 +43,7 @@ public:
 
     // void detector_fourpoints_thread(
     //     std::mutex& mutex_in, bool& flag_in, std::shared_ptr<rm::Frame>& frame_in);
-
+    void notify_tracker_in();
     // void preprocessor_rune_thread(
     //     std::mutex& mutex_out, bool& flag_out, std::shared_ptr<rm::Frame>& frame_out);
 

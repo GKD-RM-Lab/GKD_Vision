@@ -1,4 +1,5 @@
 #include "model/inference.h"
+#include "threads/pipeline.h"
 
 float CONF_THRESHOLD;
 unsigned int num_cores;
@@ -515,9 +516,10 @@ void yolo_kpt::send2frame(std::vector<yolo_kpt::Object> &enemy_result, cv::Mat& 
 
     std::unique_lock<std::mutex> lock_out(mutex_out);
     frame_out = std::make_shared<rm::Frame>(frame);
-    std::cout << "result has already send to rm::frame" << std::endl;
+    // std::cout << "result has already send to rm::frame" << std::endl;
     flag_out = true;
     lock_out.unlock();
+    Pipeline::get_instance()->notify_tracker_in();
 }
 
 void yolo_kpt::async_infer( std::mutex& mutex_in, bool& flag_in, std::shared_ptr<rm::Frame>& frame_in, 
@@ -623,7 +625,7 @@ void yolo_kpt::async_infer( std::mutex& mutex_in, bool& flag_in, std::shared_ptr
         timer.end();
 
         //输出调试
-        if (true)
+        if (0)
         {
             std::cout<<"current yolo fps: "<< 1000.0 / timer.read()<<std::endl;
             std::cout<<"detector time: "<< timer1.read()<<std::endl;
