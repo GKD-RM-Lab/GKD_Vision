@@ -8,8 +8,9 @@
 
 #include "data_manager/parameter_loader.h"
 
-void Pipeline::detector_baseline_thread(
-    std::mutex& mutex_in, bool& flag_in, std::shared_ptr<rm::Frame>& frame_in, std::mutex& mutex_out, bool& flag_out, std::shared_ptr<rm::Frame>& frame_out) {
+void Pipeline::detector_baseline_thread(std::mutex& mutex_in, bool& flag_in, std::shared_ptr<rm::Frame>& frame_in, 
+                                        std::mutex& mutex_out, bool& flag_out, std::shared_ptr<rm::Frame>& frame_out) {
+
     auto param = Param::get_instance();
     auto garage = Garage::get_instance();
 
@@ -31,5 +32,5 @@ void Pipeline::detector_baseline_thread(
     yolo_kpt model;
     std::vector<yolo_kpt::Object> result;
     
-    model.async_infer();
+    model.async_infer( mutex_in,flag_in,frame_in,mutex_out,flag_out,frame_out );
 }

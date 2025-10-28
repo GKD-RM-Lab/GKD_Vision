@@ -6,8 +6,8 @@
 # model_path_xml: "/etc/visionlib/models/RMyolov7-best-fp32/rmyolo-v7-best.xml"
 # model_path_bin: "/etc/visionlib/models/RMyolov7-best-fp32/rmyolo-v7-best.bin"
 
-model_path_xml: "/etc/visionlib/models/rmyolov7-latest.xml"
-model_path_bin: "/etc/visionlib/models/rmyolov7-latest.bin"
+model_path_xml: "/etc/visionlib/models/rmyolov7-latest32.xml"
+model_path_bin: "/etc/visionlib/models/rmyolov7-latest32.bin"
 
 conf_threshold: 0.55
 rect_cut: 0

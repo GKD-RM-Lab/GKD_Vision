@@ -1,4 +1,8 @@
 #include "garage/wrapper_car.h"
+// --- debug新增 ---
+#define DEBUG_ERROR_STATS 1 //1:开启误差统计，0：关闭误差统计
+#define DEBUG_PRINT_ERROR 1 //1:开启误差打印，0：关闭误差打印 
+// ----------------
 using namespace rm;
 using namespace std;
 
@@ -83,12 +87,61 @@ void WrapperCar::push(const Target& target, TimePoint t) {
     Eigen::Vector4d pose(
         target.pose_world[0], target.pose_world[1], target.pose_world[2], target.armor_yaw_world
     );
-    track_queue_.push(pose, t);
+
+
+    /*-------debug新增-------------------------------*///记录推入数据前的状态
+    //rm::TQstateV4* last_states_ = track_queue_.get_last_state_();
+    //bool is_first_frame = (last_states_== nullptr || last_states_->count == 0);
+    //转换为毫米再传入track_queue_的push,因为push内部还要再进行一次坐标转换，从mm -> m
+    Eigen::Vector4d pose_in(
+        target.pose_world[0] * 1000, target.pose_world[1] * 1000, target.pose_world[2] * 1000, target.armor_yaw_world
+    );
+    /*--------------------------------------------*/
+
+    track_queue_.push(pose_in, t);
 
     curr_armor_num_++;
     if (target.armor_size == ARMOR_SIZE_BIG_ARMOR) {
         armor_size_count_ += 1;
     }
+
+    //--------------- debug新增 ---------------------
+    for(const auto& pred : history_predictions_){
+        if(history_predictions_.size() == 0) break;
+        auto err = error_calculator_.calculerror4D(pred.pose_dt , pose , t ,pred.t );//计算误差
+        if(err.is_error_valid){
+            error_results_.push_back(err);//存储误差结果
+        //打印误差结果
+        //Print_error(err);&& error_results_.size() % 10 == 0
+            if(DEBUG_PRINT_ERROR ){
+                //error_calculator_.Print_error();
+                std::cout << "[DEBUG] Attempting to print error result. Index:" 
+                << error_results_.size()<< ", is_valid: " << std::boolalpha 
+                << err.is_error_valid << std::endl; // 先打印索引和有效性
+                Print_error(err);
+            }
+        }
+    }
+
+    //定期更新误差统计结果
+    if(error_results_.size() % 10 == 0){
+        error_stats_ = error_calculator_.getErrorStats(error_results_);//每10帧计算一次误差统计结果
+    }
+
+    //打印误差统计结果
+    if(DEBUG_ERROR_STATS && error_stats_.total_count > 0 && error_stats_.total_count % 50 == 0){
+        printErrorStates();
+    }
+    //只保留最近1000个误差结果
+    for(auto it = error_results_.begin(); it != error_results_.end(); ){
+        if(error_results_.size() > 1000){
+            it = error_results_.erase(it);
+        } else {
+            break;
+        }
+    }
+//--------------------------------------------------
+
     
 }
 
@@ -165,10 +218,23 @@ bool WrapperCar::getTarget(Eigen::Vector4d& pose_rotate, const double fly_delay,
         antitop = antitop_4_;
         // rm::message("antitop armor", 4);
     }
-    Eigen::Vector4d pose_shoot = track_queue_.getPose(fly_delay + shoot_delay);
-    pose_rotate_abs = track_queue_.getPose(fly_delay + rotate_delay);
+    //射击延迟预测值就是计算子弹到达目标时目标的位置，单位是米
+    Eigen::Vector4d pose_shoot = track_queue_.getPose(fly_delay + shoot_delay);//世界坐标系
+    //云台延迟计算的就是当完成瞄准时，目标的位置，单位是米
+    pose_rotate_abs = track_queue_.getPose(fly_delay + rotate_delay);//世界坐标系
+    //这里转换为云台坐标系
     rm::tf_trans_head2world(trans_head2world, -Data::yaw, 0.);
     pose_rotate = trans_head2world * pose_rotate_abs;
+
+    // --------------- debug新增 ---------------------
+    TimePoint now = getTime();
+    history_predictions_.push_back({now,pose_rotate_abs,fly_delay + rotate_delay});
+    // 仅保留最近100个观测结果
+    while(history_predictions_.size() > 100) {
+        history_predictions_.erase(history_predictions_.begin());
+    }
+    //------------------------------------------------
+
 
     if(false)
     {
@@ -246,4 +312,24 @@ void WrapperCar::getState(std::vector<std::string>& lines) {
         else antitop_4_->getStateStr(lines);
     } else antitop_4_->getStateStr(lines);
     track_queue_.getStateStr(lines);
+}
+
+
+//打印误差信息
+void WrapperCar::Print_error(error_result err){
+    std::cout<<"==== Error Result ===="<<std::endl;
+    std::cout<<"pos_error [m]: "<<err.pos_error<<std::endl;
+    std::cout<<"angle_error [rad]: "<<err.angle_error<<std::endl;
+    std::cout<<"delay_time [s]: "<<err.delay_time <<std::endl;
+    std::cout<<"last_predict_pose[x,y,z,angle]: ["<<err.last_predic_pose_4(0)<<","
+                                                    <<err.last_predic_pose_4(1)<<","
+                                                    <<err.last_predic_pose_4(2)<<","
+                                                    <<err.last_predic_pose_4(3) <<"]"<<std::endl;
+    std::cout<<"now_pose[x,y,z,angle]: ["<<err.now_pose_4(0)<<","
+                                                    <<err.now_pose_4(1)<<","
+                                                    <<err.now_pose_4(2)<<","
+                                                    <<err.now_pose_4(3) <<"]"<<std::endl;
+    std::cout<<"history_predictioj_size: "<<history_predictions_.size()<<std::endl; 
+    
+    return;
 }

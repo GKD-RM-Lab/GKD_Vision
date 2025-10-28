@@ -99,9 +99,10 @@ public:
     
     void image_show(cv::Mat src_img, std::vector<yolo_kpt::Object> result, yolo_kpt& model);
 
-    void send2frame(std::vector<yolo_kpt::Object>& enemy_result, cv::Mat& src_img);
+    void send2frame(std::vector<yolo_kpt::Object>& enemy_result, cv::Mat& src_img , std::mutex& mutex_out, bool& flag_out, std::shared_ptr<rm::Frame>& frame_out);
 
-    void async_infer();
+    void async_infer(std::mutex& mutex_in, bool& flag_in, std::shared_ptr<rm::Frame>& frame_in, 
+                    std::mutex& mutex_out, bool& flag_out, std::shared_ptr<rm::Frame>& frame_out);
 private:
     ov::Core core;
     std::shared_ptr<ov::Model> model;
