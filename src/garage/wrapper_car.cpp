@@ -114,11 +114,11 @@ void WrapperCar::push(const Target& target, TimePoint t) {
         //打印误差结果
         //Print_error(err);&& error_results_.size() % 10 == 0
             if(DEBUG_PRINT_ERROR ){
-                //error_calculator_.Print_error();
-                std::cout << "[DEBUG] Attempting to print error result. Index:" 
-                << error_results_.size()<< ", is_valid: " << std::boolalpha 
-                << err.is_error_valid << std::endl; // 先打印索引和有效性
-                Print_error(err);
+                // //error_calculator_.Print_error();
+                // std::cout << "[DEBUG] Attempting to print error result. Index:" 
+                // << error_results_.size()<< ", is_valid: " << std::boolalpha 
+                // << err.is_error_valid << std::endl; // 先打印索引和有效性
+                // Print_error(err);
             }
         }
     }

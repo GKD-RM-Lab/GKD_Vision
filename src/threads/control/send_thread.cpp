@@ -262,7 +262,7 @@ void Control::send_thread() {
             continue;
         }
 
-        rm::message("target pitch b", target_pitch);
+        // rm::message("target pitch b", target_pitch);
         Data::target_dist = sqrt(pow(pose(0, 0), 2) + pow(pose(1, 0), 2) + pow(pose(2, 0), 2));
         
         // 如果返回坐标为0, 确定控制信号

@@ -97,16 +97,16 @@ double ErrorCalculator::getDistance(const Eigen::Matrix<double, 4, 1>& this_pose
 // }
 
 void ErrorCalculator::Print_error_states(){
-    std::cout<<"==== Error States ===="<<std::endl;
-    std::cout<<"avg_pos_error [m]: "<<error_states_.avg_pos_error<<std::endl;
-    std::cout<<"avg_angle_error [rad]: "<<error_states_.avg_angle_error<<std::endl;
-    std::cout<<"std_pos_error [m]: "<<error_states_.std_pos_error<<std::endl;
-    std::cout<<"std_angle_error [rad]: "<<error_states_.std_angle_error<<std::endl;
-    std::cout<<"max_pos_error [m]: "<<error_states_.max_pos_error<<std::endl;
-    std::cout<<"min_pos_error [m]: "<<error_states_.min_pos_error<<std::endl;
-    std::cout<<"valid_count: "<<error_states_.valid_count<<std::endl;
-    std::cout<<"total_count: "<<error_states_.total_count<<std::endl;
-    return;
+    // std::cout<<"==== Error States ===="<<std::endl;
+    // std::cout<<"avg_pos_error [m]: "<<error_states_.avg_pos_error<<std::endl;
+    // std::cout<<"avg_angle_error [rad]: "<<error_states_.avg_angle_error<<std::endl;
+    // std::cout<<"std_pos_error [m]: "<<error_states_.std_pos_error<<std::endl;
+    // std::cout<<"std_angle_error [rad]: "<<error_states_.std_angle_error<<std::endl;
+    // std::cout<<"max_pos_error [m]: "<<error_states_.max_pos_error<<std::endl;
+    // std::cout<<"min_pos_error [m]: "<<error_states_.min_pos_error<<std::endl;
+    // std::cout<<"valid_count: "<<error_states_.valid_count<<std::endl;
+    // std::cout<<"total_count: "<<error_states_.total_count<<std::endl;
+    // return;
 }
 
 //3D误差暂时不可用，error_result_.now_pose = view报错，两边矩阵维数不相等
@@ -150,17 +150,17 @@ error_result ErrorCalculator::calculerror4D(const Eigen::Matrix<double, 4, 1> pr
 
 //打印误差信息
 void ErrorCalculator::Print_error(error_result err){
-    std::cout<<"==== Error Result ===="<<std::endl;
-    std::cout<<"pos_error [m]: "<<err.pos_error<<std::endl;
-    std::cout<<"angle_error [rad]: "<<err.angle_error<<std::endl;
-    std::cout<<"delay_time [s]: "<<err.delay_time <<std::endl;
-    std::cout<<"last_predict_pose_4D[x,y,z,angle]: ["<<err.last_predic_pose_4(0)<<","
-    <<err.last_predic_pose_4(1)<<","
-    <<err.last_predic_pose_4(2)<<","
-    <<err.last_predic_pose_4(3) <<"]"<<std::endl;
-    std::cout<<"now_pose[x,y,z,angle]: ["<<err.now_pose_4(0)<<","
-    <<err.now_pose_4(1)<<","
-    <<err.now_pose_4(2)<<","
-    <<err.now_pose_4(3) <<"]"<<std::endl;
+    // std::cout<<"==== Error Result ===="<<std::endl;
+    // std::cout<<"pos_error [m]: "<<err.pos_error<<std::endl;
+    // std::cout<<"angle_error [rad]: "<<err.angle_error<<std::endl;
+    // std::cout<<"delay_time [s]: "<<err.delay_time <<std::endl;
+    // std::cout<<"last_predict_pose_4D[x,y,z,angle]: ["<<err.last_predic_pose_4(0)<<","
+    // <<err.last_predic_pose_4(1)<<","
+    // <<err.last_predic_pose_4(2)<<","
+    // <<err.last_predic_pose_4(3) <<"]"<<std::endl;
+    // std::cout<<"now_pose[x,y,z,angle]: ["<<err.now_pose_4(0)<<","
+    // <<err.now_pose_4(1)<<","
+    // <<err.now_pose_4(2)<<","
+    // <<err.now_pose_4(3) <<"]"<<std::endl;
     return;
 }
