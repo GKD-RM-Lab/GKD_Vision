@@ -463,7 +463,8 @@ void yolo_kpt::image_show(cv::Mat src_img, std::vector<yolo_kpt::Object> result,
     }
 }
 
-void yolo_kpt::send2frame(std::vector<yolo_kpt::Object> &enemy_result, cv::Mat& src_img) {
+void yolo_kpt::send2frame(std::vector<yolo_kpt::Object> &enemy_result, cv::Mat& src_img
+                        ,std::mutex& mutex_out, bool& flag_out, std::shared_ptr<rm::Frame>& frame_out) {
     rm::Frame frame;
     std::vector<rm::YoloRect> yolo_result_list;
 
@@ -510,9 +511,20 @@ void yolo_kpt::send2frame(std::vector<yolo_kpt::Object> &enemy_result, cv::Mat& 
     }
     src_img.copyTo(*frame.image);
     frame.time_point = std::chrono::high_resolution_clock::now();
+
+    std::unique_lock<std::mutex> lock_out(mutex_out);
+    frame_out = std::make_shared<rm::Frame>(frame);
+    flag_out = true;
+    lock_out.unlock();
 }
 
-void yolo_kpt::async_infer() {
+void yolo_kpt::async_infer( std::mutex& mutex_in, bool& flag_in, std::shared_ptr<rm::Frame>& frame_in, 
+                            std::mutex& mutex_out, bool& flag_out, std::shared_ptr<rm::Frame>& frame_out ) {
+    
+    /*------测量时间------*/
+    Timer timer ,timer1, timer2, timer3;
+    /*------------------*/
+    
     int img_h = IMG_SIZE;
     int img_w = IMG_SIZE;
 
@@ -542,11 +554,18 @@ void yolo_kpt::async_infer() {
     while (true) {
         cv::Mat next_frame;
 
+        //开始图像处理
+        timer.begin();
+
         HIKframemtx.lock();
         HIKimage.copyTo(next_frame);
         HIKframemtx.unlock();
 
         if(next_frame.empty()) continue;
+
+         /*------识别-----------*/
+        timer1.begin();
+        /*-----------------*/
 
         if(params.is_camreverse){
             cv::flip(next_frame, next_frame, -1);
@@ -569,10 +588,24 @@ void yolo_kpt::async_infer() {
 
         pnp_kpt_preprocess(enemy_result);
 
+         /*-------------------------*/
+        timer1.end();
+        /*-------------------------*/
+
+        /*-------可视化-----------*/
+        timer2.begin();
+        /*-----------------*/
+
         image_show(frame_one, enemy_result, *this);
         if(cv::waitKey(1)=='q') break;
+         /*--------------*/
+        timer2.end();
 
-        send2frame(enemy_result, frame_one);
+         /*-------把识别数据同步-------*/
+        timer3.begin();
+        send2frame(enemy_result, frame_one ,mutex_out,flag_out,frame_out);
+        /*-----------------------*/
+        timer3.end();
 
         std::swap(current_idx, next_idx);
 
@@ -583,6 +616,19 @@ void yolo_kpt::async_infer() {
         else {
             next_frame = frame_one;
             padd_two = padd_one;
+        }
+
+         //完整图像处理结束
+        timer.end();
+
+        //输出调试
+        if (true)
+        {
+            std::cout<<"current yolo fps: "<< 1000.0 / timer.read()<<std::endl;
+            std::cout<<"detector time: "<< timer1.read()<<std::endl;
+            std::cout<<"visualize time: "<< timer2.read()<<std::endl;
+            std::cout<<"update time: "<< timer.read()<<std::endl;
+
         }
         // std::swap(frame_one, next_frame);
         // std::swap(padd_one, padd_two);

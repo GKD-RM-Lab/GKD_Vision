@@ -31,5 +31,5 @@ void Pipeline::detector_baseline_thread(
     yolo_kpt model;
     std::vector<yolo_kpt::Object> result;
     
-    model.async_infer();
+    model.async_infer( mutex_in,flag_in,frame_in,mutex_out,flag_out,frame_out );
 }
