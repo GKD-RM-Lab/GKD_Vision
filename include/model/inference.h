@@ -11,6 +11,7 @@
 #include <iostream>
 #include <memory>
 #include <array>
+#include <functional>
 #include <sstream>
 #include <sys/types.h>
 #include <opencv2/opencv.hpp>
@@ -102,7 +103,7 @@ public:
 
     void send2frame(std::vector<yolo_kpt::Object>& enemy_result, cv::Mat& src_img);
 
-    void async_infer();
+    void async_infer(const std::function<void(const std::vector<Object>&, const cv::Mat&)>& on_result = {});
 private:
     ov::Core core;
     std::shared_ptr<ov::Model> model;

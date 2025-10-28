@@ -511,7 +511,7 @@ void yolo_kpt::send2frame(std::vector<yolo_kpt::Object> &enemy_result, cv::Mat& 
     frame.time_point = std::chrono::high_resolution_clock::now();
 }
 
-void yolo_kpt::async_infer() {
+void yolo_kpt::async_infer(const std::function<void(const std::vector<Object>&, const cv::Mat&)>& on_result) {
     std::array<cv::Mat, 2> frames;
     std::array<std::vector<float>, 2> paddings;
 
@@ -566,11 +566,16 @@ void yolo_kpt::async_infer() {
         pnp_kpt_preprocess(enemy_result);
 
         image_show(frames[current_idx], enemy_result, *this);
+
+        if (on_result) {
+            on_result(enemy_result, frames[current_idx]);
+        } else {
+            send2frame(enemy_result, frames[current_idx]);
+        }
+
         if (cv::waitKey(1) == 'q') {
             break;
         }
-
-        send2frame(enemy_result, frames[current_idx]);
 
         current_idx = next_idx;
         next_idx = 1 - current_idx;
