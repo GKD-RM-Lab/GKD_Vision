@@ -13,7 +13,6 @@ void Pipeline::tracker_baseline_thread(
 
     // 性能估计
     Timer timer, timer1, timer2;
-
     auto garage = Garage::get_instance();
     auto param = Param::get_instance();
     auto control = Control::get_instance();
@@ -38,20 +37,24 @@ void Pipeline::tracker_baseline_thread(
 
     rm::CycleQueue<double> delay_list(100);
     TimePoint tp0, tp1, tp2;
-
+    // std::cout << "fuckworld" << std::endl;
     std::mutex mutex;
     while (true)
     {
+        // std::cout << "fuckworld" << std::endl;
+
         if (!Data::armor_mode)
         {
             std::unique_lock<std::mutex> lock(mutex);
             armor_cv_.wait(lock, [this]
                            { return Data::armor_mode; });
         }
+        // std::cout << "fuckworld" << std::endl;
 
         std::unique_lock<std::mutex> lock_in(mutex_in);
         tracker_in_cv_.wait(lock_in, [&flag_in]
                             { return flag_in; });
+        std::cout << "fuckworld" << std::endl;
 
         std::shared_ptr<rm::Frame> frame = frame_in;
         flag_in = false;
@@ -60,6 +63,8 @@ void Pipeline::tracker_baseline_thread(
         frame->yaw = Data::yaw;
         frame->pitch = Data::pitch;
         frame->roll = Data::roll;
+        
+        std::cout << "fuckworld" << std::endl;
 
         timer1.begin();
         tp1 = getTime();
@@ -92,6 +97,8 @@ void Pipeline::tracker_baseline_thread(
         tp0 = tp2;
         double fps = 1.0 / delay_list.getAvg();
 
+        std::cout << "fuckworld" << std::endl;
+
         if (Data::image_flag)
         {
             if (Data::ui_flag)
@@ -104,7 +111,8 @@ void Pipeline::tracker_baseline_thread(
         // rm::message("target[0]", frame->target_list[0].pose_world);
         /*debug*/
         timer.end();
-        if (false)
+    
+        if (true)
         {
             printf("---------------------\n");
             printf("tracker fps = %f\n", 1000 / timer.read());
