@@ -625,7 +625,7 @@ void yolo_kpt::async_infer( std::mutex& mutex_in, bool& flag_in, std::shared_ptr
         timer.end();
 
         //输出调试
-        if (0)
+        if (1)
         {
             std::cout<<"current yolo fps: "<< 1000.0 / timer.read()<<std::endl;
             std::cout<<"detector time: "<< timer1.read()<<std::endl;

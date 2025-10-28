@@ -107,12 +107,12 @@ void Pipeline::tracker_baseline_thread(
         }
 
         // logsys message page
-        rm::message("fps", fps);
+        // rm::message("fps", fps);
         // rm::message("target[0]", frame->target_list[0].pose_world);
         /*debug*/
         timer.end();
     
-        if (true)
+        if (0)
         {
             printf("---------------------\n");
             printf("tracker fps = %f\n", 1000 / timer.read());
