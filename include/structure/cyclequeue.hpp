@@ -1,3 +1,4 @@
+
 #ifndef __OPENRM_STRUCTURE_CYCLEQUEUE_HPP__
 #define __OPENRM_STRUCTURE_CYCLEQUEUE_HPP__
 #include <deque>

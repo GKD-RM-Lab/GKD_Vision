@@ -54,7 +54,7 @@ void Pipeline::tracker_baseline_thread(
         std::unique_lock<std::mutex> lock_in(mutex_in);
         tracker_in_cv_.wait(lock_in, [&flag_in]
                             { return flag_in; });
-        std::cout << "fuckworld" << std::endl;
+        // std::cout << "fuckworld" << std::endl;
 
         std::shared_ptr<rm::Frame> frame = frame_in;
         flag_in = false;
@@ -64,7 +64,7 @@ void Pipeline::tracker_baseline_thread(
         frame->pitch = Data::pitch;
         frame->roll = Data::roll;
         
-        std::cout << "fuckworld" << std::endl;
+        // std::cout << "fuckworld" << std::endl;
 
         timer1.begin();
         tp1 = getTime();
@@ -97,7 +97,7 @@ void Pipeline::tracker_baseline_thread(
         tp0 = tp2;
         double fps = 1.0 / delay_list.getAvg();
 
-        std::cout << "fuckworld" << std::endl;
+        // std::cout << "fuckworld" << std::endl;
 
         if (Data::image_flag)
         {

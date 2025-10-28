@@ -17,7 +17,6 @@ public:
 
 public:
     rm::RuneV2 rune_;
-
 };
 
 #endif
