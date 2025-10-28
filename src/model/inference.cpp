@@ -489,6 +489,7 @@ void yolo_kpt::send2frame(std::vector<yolo_kpt::Object> &enemy_result, cv::Mat& 
         );
 
         yolo_result_single.confidence = result_single.prob;
+    
 
         if (result_single.label < 7) {
             yolo_result_single.color_id = rm::ARMOR_COLOR_BLUE;
@@ -514,6 +515,7 @@ void yolo_kpt::send2frame(std::vector<yolo_kpt::Object> &enemy_result, cv::Mat& 
 
     std::unique_lock<std::mutex> lock_out(mutex_out);
     frame_out = std::make_shared<rm::Frame>(frame);
+    std::cout << "result has already send to rm::frame" << std::endl;
     flag_out = true;
     lock_out.unlock();
 }
@@ -554,16 +556,15 @@ void yolo_kpt::async_infer( std::mutex& mutex_in, bool& flag_in, std::shared_ptr
     while (true) {
         cv::Mat next_frame;
 
-        //开始图像处理
         timer.begin();
-
+    
         HIKframemtx.lock();
         HIKimage.copyTo(next_frame);
         HIKframemtx.unlock();
 
         if(next_frame.empty()) continue;
 
-         /*------识别-----------*/
+        /*------识别-----------*/
         timer1.begin();
         /*-----------------*/
 
