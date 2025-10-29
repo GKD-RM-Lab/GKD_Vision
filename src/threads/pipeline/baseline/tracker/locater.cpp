@@ -131,6 +131,18 @@ bool Pipeline::locater(std::shared_ptr<rm::Frame> frame) {
                 frame->yaw, intrinsic_matrix, distortion_coeffs, trans_pnp2head, rotate_pnp2head, pos_camera, *Armor3D, armor.four_points, 
                 rotate_head2world, trans_head2world, armor.id, plus_pnp_cost_image);
             
+            // 计算armor的pitch角度
+            cv::Mat rvec, tvec, rotate_cv;
+            cv::solvePnP(*Armor3D, armor.four_points,
+                        intrinsic_matrix,
+                        distortion_coeffs,
+                        rvec, tvec, false, cv::SOLVEPNP_IPPE);
+            cv::Rodrigues(rvec, rotate_cv);
+            Eigen::Matrix3d rotate_pnp;
+            rm::tf_Mat3d(rotate_cv, rotate_pnp);
+            Eigen::Matrix3d rotate_world = rotate_head2world * rotate_pnp2head * rotate_pnp;
+            target.armor_pitch_world = rm::tf_rotation2armorpitch(rotate_world);
+            
             rm::tf_trans_head2world(trans_head2world, frame->yaw, frame->pitch);
             target.pose_world = trans_head2world * trans_pnp2head * pos_camera;
             //std::cout << "pos camera \n" << trans_pnp2head * pos_camera << std::endl;
@@ -201,6 +213,7 @@ bool Pipeline::locater(std::shared_ptr<rm::Frame> frame) {
             rm::tf_Mat3d(rotate_cv, rotate_pnp);
             rotate_world = rotate_head2world * rotate_pnp2head * rotate_pnp;
             target.armor_yaw_world = rm::tf_rotation2armoryaw(rotate_world);
+            target.armor_pitch_world = rm::tf_rotation2armorpitch(rotate_world); // 添加pitch计算
 
             rm::tf_Vec4d(tvec, pose_pnp);
             pose_world = trans_head2world * trans_pnp2head * pose_pnp;

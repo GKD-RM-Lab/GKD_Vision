@@ -101,7 +101,6 @@ int yaml_load(const std::string& filepath, parameter_loader_t& params) {
     fs["cam_gain"] >> params.cam_gain;
     fs["cam_exptime"] >> params.cam_exptime;
     fs["framerate"] >> params.framerate;
-
     // 其他参数
     fs["imshow_en"] >> params.imshow_en;
     fs["debug_info"] >> params.debug_info;

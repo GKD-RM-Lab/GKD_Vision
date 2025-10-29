@@ -29,7 +29,7 @@ int main(int argc, char** argv) {
     int option;
 
     para_load("/etc/visionlib/forward_config/infantry/config.yaml");
-
+    std::cout << "ex" <<  params.cam_exptime << std::endl;
     // if(argc > 1) std::cout << "!!!!!!!!!!" << argv[1] << std::endl;
     while ((option = getopt(argc, argv, "hsv")) != -1) {
         switch (option) {

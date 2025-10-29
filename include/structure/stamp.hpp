@@ -72,6 +72,7 @@ struct Locate {
 struct Target {
     Eigen::Matrix<double, 4, 1> pose_world;
     double                      armor_yaw_world;
+    double                      armor_pitch_world;
     double                      rune_angle;
     ArmorID                     armor_id;
     ArmorColor                  color;
